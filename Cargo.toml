@@ -1,0 +1,20 @@
+[package]
+name = "locq"
+version = "0.1.0"
+edition = "2021"
+authors = ["Bart Massey <bart@cs.pdx.edu>"]
+description = "Simple lossless audio compressor based on q_compress"
+
+[dependencies.clap]
+version = "3.1"
+features = ["derive"]
+
+
+
+[dependencies.q_compress]
+version = "0.7.1"
+path = "/local/src/old/quantile-compression"
+
+[dependencies]
+anyhow = "1.0"
+hound = "3.4"
