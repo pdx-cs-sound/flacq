@@ -33,10 +33,7 @@ fn read_wav() -> Result<(hound::WavSpec, Vec<i16>), anyhow::Error> {
     Ok((header, samples))
 }
 
-fn write_compressed(
-    header: hound::WavSpec,
-    data: &[u8],
-) -> Result<(), anyhow::Error> {
+fn write_compressed(header: hound::WavSpec, data: &[u8]) -> Result<(), anyhow::Error> {
     use io::Write;
 
     let mut header_bytes: Vec<u8> = Vec::new();
@@ -60,10 +57,7 @@ fn read_compressed() -> Result<(hound::WavSpec, Vec<u8>), anyhow::Error> {
     Ok((header, csamples))
 }
 
-fn write_wav(
-    header: hound::WavSpec,
-    samples: &[i16],
-) -> Result<(), anyhow::Error> {
+fn write_wav(header: hound::WavSpec, samples: &[i16]) -> Result<(), anyhow::Error> {
     use io::Write;
 
     eprintln!("samples {}", samples.len());
@@ -88,12 +82,10 @@ fn run() -> Result<(), anyhow::Error> {
     if args.compress {
         let (header, samples) = read_wav()?;
         let nsamples = samples.len();
-        let compressor = q_compress::Compressor::<i16>::from_config(
-            q_compress::CompressorConfig {
-                compression_level: 12,
-                delta_encoding_order: args.order.unwrap_or(2),
-            }
-        );
+        let compressor = q_compress::Compressor::<i16>::from_config(q_compress::CompressorConfig {
+            compression_level: 12,
+            delta_encoding_order: args.order.unwrap_or(2),
+        });
         let csamples = compressor.simple_compress(&samples);
         let ncsamples = csamples.len();
         eprintln!(
