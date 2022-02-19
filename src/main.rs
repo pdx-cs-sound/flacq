@@ -14,6 +14,8 @@ struct Args {
     decompress: bool,
     #[clap(short, long)]
     order: Option<usize>,
+    #[clap(short, long)]
+    verbose: bool,
 }
 
 fn read_wav() -> Result<(hound::WavSpec, Vec<i16>), anyhow::Error> {
@@ -29,7 +31,6 @@ fn read_wav() -> Result<(hound::WavSpec, Vec<i16>), anyhow::Error> {
         bail!("we only handle 16-bit wavs");
     }
     let samples = reader.samples().collect::<Result<Vec<i16>, _>>()?;
-    eprintln!("samples {}", samples.len());
     Ok((header, samples))
 }
 
@@ -60,7 +61,6 @@ fn read_compressed() -> Result<(hound::WavSpec, Vec<u8>), anyhow::Error> {
 fn write_wav(header: hound::WavSpec, samples: &[i16]) -> Result<(), anyhow::Error> {
     use io::Write;
 
-    eprintln!("samples {}", samples.len());
     let mut sbytes: Vec<u8> = Vec::new();
     let cursor = io::Cursor::new(&mut sbytes);
     let mut writer = hound::WavWriter::new(cursor, header)?;
@@ -71,7 +71,6 @@ fn write_wav(header: hound::WavSpec, samples: &[i16]) -> Result<(), anyhow::Erro
     swriter.flush()?;
     writer.flush()?;
     drop(writer);
-    eprintln!("sbytes {}", sbytes.len());
     io::stdout().lock().write_all(&sbytes)?;
     io::stdout().flush()?;
     Ok(())
@@ -88,12 +87,14 @@ fn run() -> Result<(), anyhow::Error> {
         });
         let csamples = compressor.simple_compress(&samples);
         let ncsamples = csamples.len();
-        eprintln!(
-            "{}/{} ({:04.3})",
-            ncsamples,
-            nsamples * 2,
-            ncsamples as f64 * 0.5 / nsamples as f64,
-        );
+        if args.verbose {
+            eprintln!(
+                "{}/{} ({:04.3})",
+                ncsamples,
+                nsamples * 2,
+                ncsamples as f64 * 0.5 / nsamples as f64,
+            );
+        }
         write_compressed(header, &csamples)?;
     } else if args.decompress {
         let (header, csamples) = read_compressed()?;
