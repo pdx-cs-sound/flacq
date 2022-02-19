@@ -1,7 +1,9 @@
+use std::io;
+
 use anyhow::{self, bail};
 use clap::Parser;
-use hound;
-use q_compress;
+extern crate hound;
+extern crate q_compress;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -15,7 +17,7 @@ struct Args {
 }
 
 fn read_wav() -> Result<(hound::WavSpec, Vec<i16>), anyhow::Error> {
-    let mut reader = hound::WavReader::new(std::io::stdin())?;
+    let mut reader = hound::WavReader::new(io::stdin())?;
     let header = reader.spec();
     if header.sample_format != hound::SampleFormat::Int {
         bail!("we only handle int wavs");
@@ -35,26 +37,26 @@ fn write_compressed(
     header: hound::WavSpec,
     data: &[u8],
 ) -> Result<(), anyhow::Error> {
-    use std::io::Write;
+    use io::Write;
 
     let mut header_bytes: Vec<u8> = Vec::new();
-    let cursor = std::io::Cursor::new(&mut header_bytes);
+    let cursor = io::Cursor::new(&mut header_bytes);
     let mut writer = hound::WavWriter::new(cursor, header)?;
     writer.flush()?;
     drop(writer);
-    std::io::stdout().lock().write_all(&header_bytes)?;
-    std::io::stdout().lock().write_all(data)?;
+    io::stdout().lock().write_all(&header_bytes)?;
+    io::stdout().lock().write_all(data)?;
     Ok(())
 }
 
 fn read_compressed() -> Result<(hound::WavSpec, Vec<u8>), anyhow::Error> {
-    use std::io::Read;
+    use io::Read;
 
-    let reader = hound::WavReader::new(std::io::stdin())?;
+    let reader = hound::WavReader::new(io::stdin())?;
     let header = reader.spec();
     drop(reader);
     let mut csamples: Vec<u8> = Vec::new();
-    std::io::stdin().lock().read_to_end(&mut csamples)?;
+    io::stdin().lock().read_to_end(&mut csamples)?;
     Ok((header, csamples))
 }
 
@@ -62,11 +64,11 @@ fn write_wav(
     header: hound::WavSpec,
     samples: &[i16],
 ) -> Result<(), anyhow::Error> {
-    use std::io::Write;
+    use io::Write;
 
     eprintln!("samples {}", samples.len());
     let mut sbytes: Vec<u8> = Vec::new();
-    let cursor = std::io::Cursor::new(&mut sbytes);
+    let cursor = io::Cursor::new(&mut sbytes);
     let mut writer = hound::WavWriter::new(cursor, header)?;
     let mut swriter = writer.get_i16_writer(samples.len().try_into()?);
     for sample in samples {
@@ -76,8 +78,8 @@ fn write_wav(
     writer.flush()?;
     drop(writer);
     eprintln!("sbytes {}", sbytes.len());
-    std::io::stdout().lock().write_all(&sbytes)?;
-    std::io::stdout().flush()?;
+    io::stdout().lock().write_all(&sbytes)?;
+    io::stdout().flush()?;
     Ok(())
 }
 
