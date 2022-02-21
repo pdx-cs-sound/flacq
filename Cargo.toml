@@ -11,8 +11,7 @@ features = ["derive"]
 
 [dependencies.q_compress]
 version = "0.7.1"
-git = "http://github.com/BartMassey-upstream/quantile-compression"
-branch = "16-bit"
+git = "http://github.com/mwlon/quantile-compression"
 
 [dependencies]
 anyhow = "1.0"
